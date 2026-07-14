@@ -9,6 +9,7 @@ export class ConversationRepository {
       return results.rows[0];
     }
 
+
     async getAllByUserId(userId: string) {
     const results = await pool.query(
         `
@@ -38,7 +39,12 @@ export class ConversationRepository {
         return results.rows[0] ?? null;
    }
 
-     async delete(id: string){
+   async updateTitle(id: string, title: string) {
+    const response = await pool.query("UPDATE conversations SET title = $1, updated_at = NOW() WHERE id = $2 RETURNING *", [title, id]);
+    return  response.rows[0] ?? null;
+   }
+
+   async delete(id: string){
       await pool.query("DELETE FROM conversations WHERE id = $1",[id]);
       return  true;
     }

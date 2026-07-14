@@ -16,7 +16,8 @@ import { spawn } from "node:child_process";
       let conversation;
      if(!conversationId) {
        conversation = await this.conversationRepository.create(user_id);
-
+       const title = await this.aiProvider.generateConversationTitle(message);
+       await this.conversationRepository.updateTitle(conversation.id, title);
      }else {
       conversation = await this.conversationRepository.getById(conversationId);
        if(!conversation){
