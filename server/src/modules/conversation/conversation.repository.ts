@@ -9,6 +9,20 @@ export class ConversationRepository {
       return results.rows[0];
     }
 
+    async getAllByUserId(userId: string) {
+    const results = await pool.query(
+        `
+        SELECT *
+        FROM conversations
+        WHERE user_id = $1
+        ORDER BY updated_at DESC
+        `,
+        [userId]
+    );
+
+    return results.rows;
+}
+
    async getByUserId(user_id: string) {
     const results = await pool.query("SELECT * FROM conversations WHERE user_id = $1",[user_id]);
     return results.rows[0];
@@ -19,7 +33,7 @@ export class ConversationRepository {
      return results.rows[0] ?? null;
     }
 
-   async Upadte(id: string, title: string){
+   async update(id: string, title: string){
       const results = await pool.query("UPDATE conversations SET title = $1 WHERE id = $2 RETURNING *", [title, id]);
         return results.rows[0] ?? null;
    }
