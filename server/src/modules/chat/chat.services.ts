@@ -1,41 +1,58 @@
 import type { AIProvider } from "../ai/ai.provider.js";
 import { SYSTEM_PROMPT } from "../../core/prompts/sdr.prompt.js";
-import { Conversation } from "../conversation/conversation.stores.js";
+import type { sendMessage } from "./chat.types.js";
+import { ConversationRepository } from "../conversation/conversation.repository.js";
+import { MessageRepository } from "../messages/messages.repository.js";
+import { spawn } from "node:child_process";
+  export class ChatService {
+   constructor(
+    private readonly conversationRepository: ConversationRepository,
+    private readonly messageRepository: MessageRepository,
+    private readonly aiProvider: AIProvider
+) {}
 
-  export class chatService {
-   constructor(private readonly aiProvider: AIProvider){};
-  
-    private conversation: Conversation | null = null;
-   
-    async sendMessage(message: string) {
+    async sendMessage(request: sendMessage) {
+    const {user_id, conversationId, message} = request
+      let conversation;
+     if(!conversationId) {
+       conversation = await this.conversationRepository.create(user_id);
 
-    if (!this.conversation) {
+     }else {
+      conversation = await this.conversationRepository.getById(conversationId);
+       if(!conversation){
+        throw new Error("conversation doesnt exist");
+       }
+     }
 
-      this.conversation = new Conversation(crypto.randomUUID(), [
+      await this.messageRepository.create(
+      conversation.id, 
+      "user", 
+      message
+    );
+   const history = await this.messageRepository.getByConversationId(
+      conversation.id
+    );
 
-        {
 
-          role: "system",
+    const messages = [
+    {
+      role: "system",
+      content: SYSTEM_PROMPT
+    },
+    ...history.map((msg) => ({
+      role: msg.role,
+      content: msg.content
+    }))
+    ]
+   const response = await this.aiProvider.chat({
+    messages
+   });
+ 
+  await this.messageRepository.create(conversation.id, "assistant",  response.message.content);
 
-          content: SYSTEM_PROMPT,
-
-        },
-
-      ]);
-
-    }
-
-     this.conversation.addUserMessages(message);
-     console.log(this.conversation);
-    const response = await this.aiProvider.chat({
-
-      messages: this.conversation.getMessages(),
-
-    });
-
-    this.conversation.addAssistantMessage(response.message.content);
-
-    return response;
-
+  return {
+    conversationId: conversation.id,
+    message: response.message.content
+  }
   }
   }

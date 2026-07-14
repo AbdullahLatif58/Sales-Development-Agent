@@ -4,7 +4,20 @@ const port = 4000;
 
 app.listen(port, ()=>{
       console.log("app is running in 4000");
-      console.log(`${process.env.DB_NAME}`)
+      console.log(`${process.env.DB_NAME}`);
+      console.log({
+
+  host: process.env.DB_HOST,
+
+  port: process.env.DB_PORT,
+
+  user: process.env.DB_USER,
+
+  password: process.env.DB_PASSWORD,
+
+  database: process.env.DB_NAME,
+
+});
      pool.query("SELECT NOW();", (err, res) => {
        if (err) {
          console.error("Error executing query", err);
