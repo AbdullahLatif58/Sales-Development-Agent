@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { ConversationRepository } from "./conversation.repository.js";
 import { MessageRepository } from "../messages/messages.repository.js";
+import { type } from "node:os";
 
 const conversationRepository = new ConversationRepository();
 
@@ -8,14 +9,14 @@ const messageRepository = new MessageRepository();
 
 export  async function getAllConversations(req:Request, res: Response) {
     try {
-      const userId = req.query;
+     const { userId } = req.query;
       if(!userId){
          res.status(400).json({
            success: false,
            message: "userId is required"
          });
       }
-
+     console.log(req.query);
       const conversations = await conversationRepository.getAllByUserId(userId as any);
       res.status(200).json({
         success: true,
@@ -69,8 +70,7 @@ export  async function getAllConversations(req:Request, res: Response) {
    }
       }
 
-
-      export async function updateConversation(
+export async function updateConversation(
 
     req: Request,
 
@@ -194,6 +194,32 @@ export async function deleteConversation(
 
     }
 
+}
+
+export async function updateConversationTitle(req: Request, res:Response){
+     try {
+ const { id } = req.params;
+    const { title } = req.body;
+
+    if(!title || typeof title !==  "string") {
+    res.status(400).json({
+        success: false,
+        message: "title is required"
+    })
+    }
+
+    const response = await conversationRepository.updateTitle(id as any, title);
+    res.status(200).json({
+        success: true,
+        data: response
+    })
+     }catch(error: string | any) {
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
+     }
+   
 }
  
 
