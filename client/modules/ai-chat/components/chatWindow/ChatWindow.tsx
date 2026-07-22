@@ -4,6 +4,7 @@ import Button from "@/modules/shared/ui/Button";
 import MessageList from "./MessageList";
 import { Send, Sparkles, Bot } from "lucide-react";
 import { useConversation } from "@/modules/hooks/useConversation";
+import { useState } from "react";
 
 type Props = {
   conversationId: string | null;
@@ -11,10 +12,19 @@ type Props = {
 
 export default function ChatBox({ conversationId }: Props) {
   const { isLoading, error, data } = useConversation(conversationId);
+ const [input, setInput] = useState("");
+
+  function handleSend() {
+    const content = input.trim();
+    if(!content) return ;
+    console.log("Sending Message to Ai:", content);
+  
+  }
+
 
   return (
     <section className="flex h-screen flex-1 flex-col bg-zinc-900 text-white">
-      {/* Header */}
+     
       <header className="flex items-center justify-between border-b border-zinc-800 px-4 py-5 sm:px-6 lg:px-8">
         <div>
           <h2 className="text-lg font-semibold">
@@ -113,25 +123,35 @@ export default function ChatBox({ conversationId }: Props) {
       {/* Composer */}
       <footer className="border-t border-zinc-800 p-4 sm:p-6">
         <div className="mx-auto flex max-w-5xl items-end gap-4 rounded-2xl border border-zinc-700 bg-zinc-950 p-4">
-          <textarea
-            rows={1}
-            placeholder="Message AI SDR..."
-            disabled={!conversationId}
-            className="
-              min-h-[28px]
-              max-h-40
-              flex-1
-              resize-none
-              bg-transparent
-              text-white
-              outline-none
-              placeholder:text-zinc-500
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
-          />
+         <textarea
+         onKeyDown={(e)=> {
+            if(e.key === "Enter" ){
+              e.preventDefault();
+              handleSend();
+            }
+           }}
+          rows={1}
+          value={input}
+           onChange={(e) => setInput(e.target.value)}
+           placeholder="Message AI SDR..."
+         
+         className="
+         min-h-[28px]
+         max-h-40
+         flex-1
+         resize-none
+         bg-transparent
+         text-white
+         outline-none
+         placeholder:text-zinc-500
+         disabled:cursor-not-allowed
+          disabled:opacity-50
+  "
+/>
 
           <Button
+           
+            onClick={handleSend}
             disabled={!conversationId}
             className="
               flex
