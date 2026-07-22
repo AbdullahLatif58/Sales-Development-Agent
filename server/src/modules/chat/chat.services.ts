@@ -53,7 +53,8 @@ import { spawn } from "node:child_process";
 
   return {
     conversationId: conversation.id,
-    message: response.message.content
+    message: response.message.content,
+    
   }
   }
   

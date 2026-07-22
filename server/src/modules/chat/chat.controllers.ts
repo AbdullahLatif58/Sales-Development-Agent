@@ -17,11 +17,14 @@ const chatService = new ChatService(
 export async function sendMessage(req: Request, res: Response) {
     try {
         const response = await chatService.sendMessage(req.body);
-
+        console.log("response", response)
         return res.status(200).json({
             success: true,
-            conversationId: response.conversationId,
-            message: response.message,
+            data : {
+                userMessage: {
+                  
+                }
+            }
         });
     } catch (error) {
         console.error(error);
