@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversationApi } from "@/modules/api/conversation";
-
+import { ConversationResponse } from "../ai-chat/types/conversation.types";
 export function useConversations(userId: string) {
-  return useQuery({
+  return useQuery<ConversationResponse[]>({
     queryKey: ["conversations"],
     queryFn: () => conversationApi.getAll(userId),
     enabled: !!userId,
@@ -20,9 +20,7 @@ export function useConversation(id: string | null) {
     enabled: !!id,
 
   });
-
 }
-
 
 export function useConversationMutations() {
   const queryClient = useQueryClient();

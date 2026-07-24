@@ -5,6 +5,7 @@ import MessageList from "./MessageList";
 import { Send, Sparkles, Bot } from "lucide-react";
 import { useConversation } from "@/modules/hooks/useConversation";
 import { useState } from "react";
+import { useSendMessage } from "@/modules/hooks/useSendMessage";
 
 type Props = {
   conversationId: string | null;
@@ -13,12 +14,19 @@ type Props = {
 export default function ChatBox({ conversationId }: Props) {
   const { isLoading, error, data } = useConversation(conversationId);
  const [input, setInput] = useState("");
+ const sendMessage = useSendMessage();
 
+  
   function handleSend() {
     const content = input.trim();
     if(!content) return ;
+    sendMessage.mutate({
+      user_id: "550e8400-e29b-41d4-a716-446655440000",
+      conversationId: conversationId || "",
+      message: content
+    });
+    setInput(" ");
     console.log("Sending Message to Ai:", content);
-  
   }
 
 
