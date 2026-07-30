@@ -1,0 +1,141 @@
+What is a Token?
+     
+     A token is the smallest meaningful unit of text that a tokenizer chooses to represent as one item.
+
+token : I love Shopify.
+
+Tokenizer : 
+     
+  Human
+   │
+   ▼
+"I love Shopify"
+
+Tokenizer
+
+   ▼
+
+["I"," love"," Shopify","."]
+
+
+The tokenizer is the gateway to the model. Every single character you send must pass through it before the AI can “think.”
+
+
+Token Id: 
+          afetr doing the tokenization this creates the token id's man 
+
+
+ Token
+
+↓
+
+ID
+
+↓
+
+Embedding Vector
+
+↓
+
+Transformer
+
+Embedding Matrix
+
+Token ID      Embedding
+--------------------------------
+45        → [0.12, -0.55, 0.81, ...]
+91        → [-0.43, 0.77, 0.10, ...]
+120       → [0.91, -0.11, 0.44, ...]
+
+
+
+
+                     User
+                       │
+                       ▼
+               "Create Shopify leads"
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+          ▼                         ▼
+   Tokenizer                 Embedding Model (RAG)
+          │                         │
+   Token IDs                  Search Vector
+          │                         │
+          ▼                         ▼
+   Embedding Layer            Vector Database
+          │                         │
+          ▼                         ▼
+     Transformer          Retrieved Documents
+                └────────────┬────────────┘
+                             ▼
+                           Response
+
+Transformer: 
+
+             Think of the Transformer as a giant reasoning machine
+
+             Create Shopify leads with emails
+
+             The Transformer doesn’t read left to right like a normal program.
+
+             Instead it builds relationships.
+
+            Create
+           /      \
+          /        \
+   Shopify ------ Leads
+          \
+           \
+          Emails
+
+          It figures out that:
+
+* “Shopify” modifies “leads.”
+* “emails” describes the leads.
+* “Create” is the action.
+
+ Embedding Layer
+
+↓
+
+Transformer Layer 1
+
+↓
+
+Transformer Layer 2
+
+↓
+
+Transformer Layer 3
+
+↓
+
+...
+
+↓
+
+Transformer Layer 80
+
+
+
+
+
+
+Text
+ ↓
+Tokenizer
+ ↓
+Token IDs
+ ↓
+Embedding Lookup
+ ↓
+Embedding Vectors
+ ↓
+Transformer  ← (this is where the AI actually "thinks")
+ ↓
+Next Token Prediction
+ ↓
+Detokenizer
+ ↓
+Human-readable text

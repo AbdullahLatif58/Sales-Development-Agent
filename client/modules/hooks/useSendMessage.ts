@@ -8,18 +8,18 @@ export const useSendMessage = () => {
     mutationFn: chatApi.sendMessage,
 
     async onMutate(variables) {
-      // Stop any in-flight fetches for this conversation
+     
       await queryClient.cancelQueries({
         queryKey: ["conversation", variables.conversationId],
       });
 
-      // Backup the current cache
+     
       const previousConversation = queryClient.getQueryData([
         "conversation",
         variables.conversationId,
       ]);
 
-      // Create optimistic user message
+    
       const optimisticUserMessage = {
         id: crypto.randomUUID(),
         conversation_id: variables.conversationId,
@@ -28,7 +28,7 @@ export const useSendMessage = () => {
         created_at: new Date().toISOString(),
       };
 
-      // Create optimistic assistant placeholder
+
       const optimisticAssistantMessage = {
         id: "typing",
         conversation_id: variables.conversationId,
@@ -37,7 +37,7 @@ export const useSendMessage = () => {
         created_at: new Date().toISOString(),
       };
 
-      // Update the cache immediately
+      
       queryClient.setQueryData(
         ["conversation", variables.conversationId],
         (oldData: any) => {
