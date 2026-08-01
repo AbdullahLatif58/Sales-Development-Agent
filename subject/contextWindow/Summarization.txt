@@ -1,0 +1,68 @@
+System Prompt
+
+↓
+
+User 1
+
+↓
+
+Assistant 1
+
+↓
+
+...
+
+↓
+
+User 500
+
+↓
+
+Assistant 500
+
+↓
+
+Current User
+
+
+Summarization fixes this
+
+Instead of keeping 300 old messages…
+
+We replace them with one summary.
+
+Example:
+
+Instead of sending:
+
+
+User:
+I'm building an AI SDR.
+
+Assistant:
+...
+
+User:
+Backend is Node.js.
+
+Assistant:
+...
+
+User:
+Database is PostgreSQL.
+
+Assistant:
+...
+
+...300 more messages...
+
+Conversation Summary
+
+• User is building an AI SDR
+• Backend uses Node.js
+• Database is PostgreSQL
+• Target users are sales teams
+• Uses RAG
+• Wants enterprise architecture
+
+Maybe only 100 tokens.
