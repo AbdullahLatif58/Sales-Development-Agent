@@ -1,0 +1,30 @@
+Many advanced AI systems perform context compression automatically by:
+
+* removing repetitive confirmations,
+* removing greetings,
+* removing duplicate information,
+* keeping facts and decisions,
+* keeping unresolved tasks.
+
+This reduces token usage without losing as much information as summarization.
+
+Differnce :
+Summarization
+
+Context Compression
+
+Rewrites the conversation
+
+Keeps the original conversation
+
+Generates new text
+
+Removes unnecessary text
+
+Can lose details
+
+Usually preserves more detail
+
+Requires an LLM (commonly)
+
+Can often be rule-based or use lightweight logic
