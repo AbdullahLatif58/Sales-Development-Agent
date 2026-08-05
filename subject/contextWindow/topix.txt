@@ -1,0 +1,12 @@
+✅ Context Window
+✅ Input Tokens
+✅ Output Tokens
+✅ Conversation History
+✅ Sliding Window
+✅ Context Compression
+✅ Summarization
+
+⬜ Lost in the Middle
+⬜ Token Budgeting
+⬜ Prompt Packing
+⬜ Cache vs Context

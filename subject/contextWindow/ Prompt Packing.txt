@@ -1,0 +1,25 @@
+Prompt Packing: 
+
+                System
+
+↓
+
+Developer
+
+↓
+
+Conversation Summary
+
+↓
+
+Relevant RAG
+
+↓
+
+Recent History
+
+↓
+
+Current User
+
+

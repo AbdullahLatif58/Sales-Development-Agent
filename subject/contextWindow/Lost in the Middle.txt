@@ -1,0 +1,53 @@
+ Lost in the Middle 
+
+                    Research has shown that models generally pay the most attention to:
+
+* the beginning of the context,
+* the end of the context,
+
+and are more likely to miss important information buried in the middle.
+
+
+
+
+System Prompt
+
+↓
+
+Document 1
+
+↓
+
+Document 2
+
+↓
+
+Document 3  ← IMPORTANT FACT
+
+↓
+
+Document 4
+
+↓
+
+Document 5
+
+↓
+
+Current User Question
+
+
+
+
+If the correct answer is in Doc C, the model may miss it more often than if it were placed near the top of the retrieved context.
+
+
+
+Production solution
+
+* Rank retrieved documents by relevance.
+* Put the most relevant documents first.
+* Remove irrelevant documents.
+* Don’t stuff the entire vector database into the prompt.
+
+

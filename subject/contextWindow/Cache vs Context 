@@ -1,0 +1,59 @@
+Cache vs Context: 
+                    This confuses almost everyone.
+                    Let’s separate them.
+
+
+Context:
+         Temporary.
+
+Exists only during one request.
+
+System
+
+↓
+
+History
+
+↓
+
+User
+
+↓
+
+LLM
+
+
+After the response finishes,
+
+
+
+
+Cache
+
+Many kinds exist.
+
+React Query Cache
+
+Stores API responses on the frontend.
+
+⸻
+
+Redis Cache
+
+Stores data to avoid hitting the database repeatedly.
+
+⸻
+
+Prompt Cache
+
+Some providers reuse repeated prompt prefixes internally to reduce latency and cost for identical prompt segments. This is provider-specific.
+
+⸻
+
+KV Cache
+
+One of the biggest optimizations inside LLM inference.
+
+The model remembers intermediate computations while generating tokens, so it doesn’t recompute everything for every new output token.
+
+We’ll study KV Cache later because it’s an inference optimization rather than a context-management concept.

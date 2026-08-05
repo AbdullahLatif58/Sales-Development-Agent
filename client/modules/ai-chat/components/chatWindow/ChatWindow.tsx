@@ -160,7 +160,7 @@ export default function ChatBox({ conversationId }: Props) {
           <Button
            
             onClick={handleSend}
-            disabled={!conversationId}
+            
             className="
               flex
               h-11

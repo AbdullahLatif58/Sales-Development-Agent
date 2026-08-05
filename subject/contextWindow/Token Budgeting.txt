@@ -1,0 +1,27 @@
+Token Budgeting:
+                Suppose your model supports:  128,000 tokens
+                You never let the user consume all 128k.
+
+                Instead you create a budget.
+
+
+System Prompt       3k
+
+Developer Prompt    2k
+
+Conversation        20k
+
+RAG                 40k
+
+Current User         3k
+
+Output Reserve      10k
+
+------------------------
+
+Total               78k
+
+
+You always reserve space for the answer.
+
+Otherwise the model reaches the context limit before it can respond.
