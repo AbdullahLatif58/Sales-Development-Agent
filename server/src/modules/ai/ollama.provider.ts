@@ -24,6 +24,26 @@ export class OllamaProvider implements AIProvider {
    }
   }
 
+async *streamChat(request: AIRequest): AsyncIterable<string> {
+
+    const stream = await this.client.chat({
+
+      model: "qwen3:8b",
+
+      messages: request.messages,
+
+      stream: true,
+
+    });
+
+    for await (const chunk of stream) {
+
+      yield chunk.message.content;
+
+    }
+
+  }
+
   async generateConversationTitle(firstMessage: string): Promise<string> {
      const  response = await this.client.chat({
       model: "qwen3:8b",
