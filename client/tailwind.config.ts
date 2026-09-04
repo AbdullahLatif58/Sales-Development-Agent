@@ -1,5 +1,14 @@
-content: [
-  "./app/**/*.{js,ts,jsx,tsx}",
-  "./components/**/*.{js,ts,jsx,tsx}",
-  "./modules/**/*.{js,ts,jsx,tsx}",
-]
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+
+  theme: {
+    extend: {},
+  },
+
+  plugins: [
+    require("@tailwindcss/typography"),
+  ],
+};
