@@ -3,59 +3,164 @@ import { SYSTEM_PROMPT } from "../../core/prompts/sdr.prompt.js";
 import type { sendMessage } from "./chat.types.js";
 import { ConversationRepository } from "../conversation/conversation.repository.js";
 import { MessageRepository } from "../messages/messages.repository.js";
-import { spawn } from "node:child_process";
-  export class ChatService {
-   constructor(
+
+export class ChatService {
+  constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly messageRepository: MessageRepository,
     private readonly aiProvider: AIProvider
-) {}
+  ) {}
 
-    async sendMessage(request: sendMessage) {
-    const {user_id, conversationId, message} = request
-      let conversation;
-     if(!conversationId) {
-       conversation = await this.conversationRepository.create(user_id);
-       const title = await this.aiProvider.generateConversationTitle(message);
-       await this.conversationRepository.updateTitle(conversation.id, title);
-     }else {
-      conversation = await this.conversationRepository.getById(conversationId);
-       if(!conversation){
+  async sendMessage(request: sendMessage) {
+    const { user_id, conversationId, message } = request;
+
+    let conversation;
+
+    if (!conversationId) {
+      conversation = await this.conversationRepository.create(user_id);
+
+      const title =
+        await this.aiProvider.generateConversationTitle(message);
+
+      await this.conversationRepository.updateTitle(
+        conversation.id,
+        title
+      );
+    } else {
+      conversation =
+        await this.conversationRepository.getById(conversationId);
+
+      if (!conversation) {
         throw new Error("conversation doesnt exist");
-       }
-     }
+      }
+    }
 
-      await this.messageRepository.create(
-      conversation.id, 
-      "user", 
+    await this.messageRepository.create(
+      conversation.id,
+      "user",
       message
     );
-   const history = await this.messageRepository.getByConversationId(
-      conversation.id
-    );
 
+    const history =
+      await this.messageRepository.getByConversationId(
+        conversation.id
+      );
 
     const messages = [
-    {
-      role: "system",
-      content: SYSTEM_PROMPT
-    },
-    ...history.map((msg) => ({
-      role: msg.role,
-      content: msg.content
-    }))
-    ]
-   const response = await this.aiProvider.chat({
-    messages
-   });
- 
-  await this.messageRepository.create(conversation.id, "assistant",  response.message.content);
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    ];
 
-  return {
-    conversationId: conversation.id,
-    message: response.message.content,
-    
+    const response = await this.aiProvider.chat({
+      messages,
+    });
+
+    await this.messageRepository.create(
+      conversation.id,
+      "assistant",
+      response.message.content
+    );
+
+    return {
+      conversationId: conversation.id,
+      message: response.message.content,
+    };
   }
+
+  async *streamMessage(request: sendMessage) {
+    const { user_id, conversationId, message } = request;
+
+    let conversation;
+    let title: string | undefined;
+
+    // 1. Create or find conversation
+    if (!conversationId) {
+      conversation =
+        await this.conversationRepository.create(user_id);
+
+      title =
+        await this.aiProvider.generateConversationTitle(message);
+
+      await this.conversationRepository.updateTitle(
+        conversation.id,
+        title
+      );
+    } else {
+      conversation =
+        await this.conversationRepository.getById(conversationId);
+
+      if (!conversation) {
+        throw new Error("conversation doesnt exist");
+      }
+    }
+
+    // 2. Save user's message
+    await this.messageRepository.create(
+      conversation.id,
+      "user",
+      message
+    );
+
+    // 3. Load conversation history
+    const history =
+      await this.messageRepository.getByConversationId(
+        conversation.id
+      );
+
+    // 4. Build AI messages
+    const messages = [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    ];
+
+    // 5. Tell the client which conversation we're streaming
+    yield {
+      type: "conversation" as const,
+      conversationId: conversation.id,
+      title,
+    };
+
+    // 6. Start AI streaming
+    let fullResponse = "";
+
+    const stream = this.aiProvider.streamChat({
+      messages,
+    });
+
+    // 7. Forward every AI chunk
+    for await (const chunk of stream) {
+      fullResponse += chunk;
+
+      yield {
+        type: "token" as const,
+        content: chunk,
+      };
+    }
+
+    // 8. Save complete assistant response
+    await this.messageRepository.create(
+      conversation.id,
+      "assistant",
+      fullResponse
+    );
+
+    // 9. Tell the client streaming is finished
+    yield {
+      type: "done" as const,
+      conversationId: conversation.id,
+    };
   }
   
-  }
+}
