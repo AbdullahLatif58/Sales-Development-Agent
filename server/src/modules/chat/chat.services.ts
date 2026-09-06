@@ -3,12 +3,14 @@ import { SYSTEM_PROMPT } from "../../core/prompts/sdr.prompt.js";
 import type { sendMessage } from "./chat.types.js";
 import { ConversationRepository } from "../conversation/conversation.repository.js";
 import { MessageRepository } from "../messages/messages.repository.js";
+import { ContextManager } from "../context/context.manager.js";
 
 export class ChatService {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly messageRepository: MessageRepository,
-    private readonly aiProvider: AIProvider
+    private readonly aiProvider: AIProvider,
+    private readonly contextManager: ContextManager
   ) {}
 
   async sendMessage(request: sendMessage) {
@@ -17,7 +19,8 @@ export class ChatService {
     let conversation;
 
     if (!conversationId) {
-      conversation = await this.conversationRepository.create(user_id);
+      conversation =
+        await this.conversationRepository.create(user_id);
 
       const title =
         await this.aiProvider.generateConversationTitle(message);
@@ -57,9 +60,21 @@ export class ChatService {
       })),
     ];
 
-    const response = await this.aiProvider.chat({
-      messages,
-    });
+    const contextResult =
+      await this.contextManager.analyze(
+        SYSTEM_PROMPT,
+        history,
+        message
+      );
+
+    if (contextResult.status === "too_large") {
+      throw new Error("Context window exceeded");
+    }
+
+    const response =
+      await this.aiProvider.chat({
+        messages,
+      });
 
     await this.messageRepository.create(
       conversation.id,
@@ -79,13 +94,14 @@ export class ChatService {
     let conversation;
     let title: string | undefined;
 
-    // 1. Create or find conversation
     if (!conversationId) {
       conversation =
         await this.conversationRepository.create(user_id);
 
       title =
-        await this.aiProvider.generateConversationTitle(message);
+        await this.aiProvider.generateConversationTitle(
+          message
+        );
 
       await this.conversationRepository.updateTitle(
         conversation.id,
@@ -93,27 +109,26 @@ export class ChatService {
       );
     } else {
       conversation =
-        await this.conversationRepository.getById(conversationId);
+        await this.conversationRepository.getById(
+          conversationId
+        );
 
       if (!conversation) {
         throw new Error("conversation doesnt exist");
       }
     }
 
-    // 2. Save user's message
     await this.messageRepository.create(
       conversation.id,
       "user",
       message
     );
 
-    // 3. Load conversation history
     const history =
       await this.messageRepository.getByConversationId(
         conversation.id
       );
 
-    // 4. Build AI messages
     const messages = [
       {
         role: "system",
@@ -125,21 +140,30 @@ export class ChatService {
       })),
     ];
 
-    // 5. Tell the client which conversation we're streaming
+    const contextResult =
+      await this.contextManager.analyze(
+        SYSTEM_PROMPT,
+        history,
+        message
+      );
+
+    if (contextResult.status === "too_large") {
+      throw new Error("Context window exceeded");
+    }
+
     yield {
       type: "conversation" as const,
       conversationId: conversation.id,
       title,
     };
 
-    // 6. Start AI streaming
     let fullResponse = "";
 
-    const stream = this.aiProvider.streamChat({
-      messages,
-    });
+    const stream =
+      this.aiProvider.streamChat({
+        messages,
+      });
 
-    // 7. Forward every AI chunk
     for await (const chunk of stream) {
       fullResponse += chunk;
 
@@ -149,18 +173,15 @@ export class ChatService {
       };
     }
 
-    // 8. Save complete assistant response
     await this.messageRepository.create(
       conversation.id,
       "assistant",
       fullResponse
     );
 
-    // 9. Tell the client streaming is finished
     yield {
       type: "done" as const,
       conversationId: conversation.id,
     };
   }
-  
 }
