@@ -27,3 +27,13 @@ export interface TokenBudgetConfig {
 export interface TokenBudget {
   availableInputTokens: number;
 }
+
+
+export type ContextStatus =
+  | "fit"
+  | "too_large";
+
+  export interface ContextResult {
+   status: ContextStatus;
+   analysis: TokenAnalysis;
+  }
