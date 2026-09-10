@@ -38,27 +38,11 @@ export class ChatService {
       }
     }
 
-    await this.messageRepository.create(
-      conversation.id,
-      "user",
-      message
-    );
-
+    // Get previous messages BEFORE saving the current message.
     const history =
       await this.messageRepository.getByConversationId(
         conversation.id
       );
-
-    const messages = [
-      {
-        role: "system",
-        content: SYSTEM_PROMPT,
-      },
-      ...history.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    ];
 
     const contextResult =
       await this.contextManager.analyze(
@@ -70,6 +54,28 @@ export class ChatService {
     if (contextResult.status === "too_large") {
       throw new Error("Context window exceeded");
     }
+
+    // Context is valid, so now persist the current user message.
+    await this.messageRepository.create(
+      conversation.id,
+      "user",
+      message
+    );
+
+    const messages = [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      {
+        role: "user" as const,
+        content: message,
+      },
+    ];
 
     const response =
       await this.aiProvider.chat({
@@ -118,27 +124,11 @@ export class ChatService {
       }
     }
 
-    await this.messageRepository.create(
-      conversation.id,
-      "user",
-      message
-    );
-
+    // Get previous messages BEFORE saving the current message.
     const history =
       await this.messageRepository.getByConversationId(
         conversation.id
       );
-
-    const messages = [
-      {
-        role: "system",
-        content: SYSTEM_PROMPT,
-      },
-      ...history.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    ];
 
     const contextResult =
       await this.contextManager.analyze(
@@ -150,6 +140,28 @@ export class ChatService {
     if (contextResult.status === "too_large") {
       throw new Error("Context window exceeded");
     }
+
+    // Context is valid, so now persist the current user message.
+    await this.messageRepository.create(
+      conversation.id,
+      "user",
+      message
+    );
+
+    const messages = [
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      ...history.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      {
+        role: "user" as const,
+        content: message,
+      },
+    ];
 
     yield {
       type: "conversation" as const,
