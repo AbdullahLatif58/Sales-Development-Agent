@@ -1,11 +1,18 @@
-export type ContextMessageRole = | "system" | "user" | "assistant"
+export type ContextMessageRole =
+  | "system"
+  | "user"
+  | "assistant";
 
 export interface ContextMessage {
-   role: ContextMessageRole,
-   content: string
+  role: ContextMessageRole;
+  content: string;
 }
 
-
+export interface ContextInput {
+  systemPrompt: string;
+  historyMessages: ContextMessage[];
+  currentMessage: string;
+}
 
 export interface TokenAnalysis {
   systemTokens: number;
@@ -14,26 +21,18 @@ export interface TokenAnalysis {
   totalInputTokens: number;
 }
 
-
-
-
-export interface TokenBudgetConfig {
-   modelLimit: number;
-   maxOutputTokens: number;
-   safetyMargin: number;
-}
-
-
-export interface TokenBudget {
-  availableInputTokens: number;
-}
-
-
 export type ContextStatus =
   | "fit"
   | "too_large";
 
-  export interface ContextResult {
-   status: ContextStatus;
-   analysis: TokenAnalysis;
-  }
+export interface ContextResult {
+  status: ContextStatus;
+  analysis: TokenAnalysis;
+}
+
+export interface ContextReductionResult {
+  systemPrompt: string;
+  historyMessages: ContextMessage[];
+  currentMessage: string;
+  analysis: TokenAnalysis;
+}
