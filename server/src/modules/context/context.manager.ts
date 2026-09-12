@@ -54,7 +54,7 @@ export class ContextManager {
       this.tokenBudget.canFit(
         reducedContext.analysis.totalInputTokens
       );
-
+ 
     return {
       status: reducedCanFit
         ? "fit"
