@@ -1,0 +1,52 @@
+                 LLM RESPONSE
+                      │
+          ┌───────────┴───────────┐
+          ↓                       ↓
+   Model knowledge          Runtime information
+          │                       │
+     Model weights          ┌─────┼─────┐
+                            ↓     ↓     ↓
+                         Prompt  RAG   Tools
+
+
+1. Model / parametric knowledge
+
+During training, the model processes enormous amounts of data.
+
+
+training vs inference: 
+
+Training
+
+The model learns
+                         
+ Huge dataset
+     ↓
+Model
+     ↓
+Prediction
+     ↓
+Loss
+     ↓
+Weight updates
+     ↓
+Trained model
+
+
+
+Inference
+
+Your application uses the trained model.
+
+
+Your application
+      ↓
+Prompt
+      ↓
+Tokenizer
+      ↓
+Qwen
+      ↓
+Prediction
+      ↓
+Generated response

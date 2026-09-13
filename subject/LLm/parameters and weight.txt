@@ -1,0 +1,31 @@
+3. Parameters & Weights
+
+3.1 First: what is a parameter?
+
+A parameter is a numerical value learned by the neural network during training.
+
+That’s it at the simplest level.
+
+Imagine a tiny artificial network containing:
+
+
+
+ Parameter 1 = 0.42
+Parameter 2 = -0.17
+Parameter 3 = 1.83
+Parameter 4 = 0.006
+
+
+
+
+3.2 What is a weight?
+
+In everyday LLM discussions, you’ll hear:
+
+parameters
+weights
+model weights
+
+These terms are often used almost interchangeably.
+
+A weight is a parameter that controls how strongly one signal contributes to another computation inside the network.
