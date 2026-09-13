@@ -1,0 +1,537 @@
+╔══════════════════════════════════════════════════════════════╗
+║                 5. NEXT-TOKEN PREDICTION                     ║
+╚══════════════════════════════════════════════════════════════╝
+
+CORE IDEA
+─────────
+An autoregressive LLM generates text by predicting ONE NEXT TOKEN
+at a time based on all the tokens it currently has in context.
+
+The fundamental operation is:
+
+    Previous Tokens
+          ↓
+    Predict Next Token
+          ↓
+    Add Token to Context
+          ↓
+    Predict Next Token
+          ↓
+          ...
+
+──────────────────────────────────────────────────────────────
+
+1. BASIC EXAMPLE
+────────────────
+
+Input:
+
+    "The customer wants to"
+
+The model may calculate probabilities such as:
+
+    buy       → 42%
+    purchase  → 21%
+    learn     → 8%
+    know      → 4%
+    ...
+
+The model then selects a token according to its decoding strategy.
+
+For example:
+
+    "buy"
+
+The context becomes:
+
+    "The customer wants to buy"
+
+Then the model predicts the NEXT token again.
+
+
+──────────────────────────────────────────────────────────────
+
+2. COMPLETE GENERATION PIPELINE
+────────────────────────────────
+
+User/Application Context
+        ↓
+System Prompt
+        +
+Conversation History
+        +
+Current User Message
+        ↓
+     Tokenizer
+        ↓
+     Token IDs
+        ↓
+    Transformer
+        ↓
+      Logits
+        ↓
+ Probability Distribution
+        ↓
+     Decoding
+        ↓
+   Next Token
+        ↓
+ Add Token to Context
+        ↓
+    Transformer
+        ↓
+   Next Token
+        ↓
+       ...
+        ↓
+   Final Response
+
+
+──────────────────────────────────────────────────────────────
+
+3. WHAT ARE LOGITS?
+───────────────────
+
+The transformer does NOT directly output a word such as:
+
+    "Sure"
+
+Instead, it produces a numerical score for every possible token
+in the model's vocabulary.
+
+Example:
+
+    "the"       → 2.1
+    "AI"        → 4.7
+    "build"     → 3.8
+    "Sure"      → 8.2
+    "can"       → 5.1
+    "website"   → 2.4
+
+These raw numerical scores are called:
+
+    LOGITS
+
+Higher logit:
+    → generally means the model considers that token more likely.
+
+Lower logit:
+    → generally means the model considers that token less likely.
+
+IMPORTANT:
+
+    Logits are NOT probabilities.
+
+
+──────────────────────────────────────────────────────────────
+
+4. LOGITS → PROBABILITIES
+──────────────────────────
+
+The logits are converted into probabilities.
+
+Conceptually:
+
+    Transformer
+        ↓
+      Logits
+        ↓
+      Softmax
+        ↓
+   Probabilities
+
+Example:
+
+    Sure       → 62%
+    can        → 18%
+    I           → 9%
+    the         → 4%
+    build       → 3%
+    ...
+
+
+Now the model has a probability distribution over possible
+next tokens.
+
+
+──────────────────────────────────────────────────────────────
+
+5. DECODING
+───────────
+
+After probabilities are produced, the model needs to decide
+which token to actually generate.
+
+This decision is called:
+
+    DECODING
+
+
+There are different decoding strategies.
+
+
+──────────────────────────────────────────────────────────────
+
+6. GREEDY DECODING
+───────────────────
+
+Greedy decoding simply chooses the token with the highest
+probability.
+
+Example:
+
+    Sure       → 62%
+    can        → 18%
+    I           → 9%
+
+Highest probability:
+
+    Sure
+
+Therefore:
+
+    Next token = "Sure"
+
+
+Advantages:
+    • Deterministic
+    • Simple
+    • Predictable
+
+Disadvantage:
+    • Can produce repetitive or less diverse output
+
+
+──────────────────────────────────────────────────────────────
+
+7. SAMPLING
+───────────
+
+Instead of always selecting the highest-probability token,
+the model can sample from the probability distribution.
+
+Example:
+
+    Sure       → 62%
+    can        → 18%
+    I           → 9%
+    ...
+
+The model is more likely to choose "Sure", but other tokens
+can potentially be selected.
+
+This introduces controlled randomness.
+
+
+Important generation controls include:
+
+    • Temperature
+    • Top-K
+    • Top-P
+    • Repetition penalties
+
+
+These controls affect HOW the model chooses tokens.
+
+They do NOT retrain the model.
+
+
+──────────────────────────────────────────────────────────────
+
+8. THE GENERATION LOOP
+───────────────────────
+
+Suppose the model needs to generate:
+
+    "Sure, I can help you."
+
+
+The model conceptually generates:
+
+    Step 1:
+        "Sure"
+
+    Step 2:
+        "Sure,"
+
+    Step 3:
+        "Sure, I"
+
+    Step 4:
+        "Sure, I can"
+
+    Step 5:
+        "Sure, I can help"
+
+    Step 6:
+        "Sure, I can help you"
+
+    Step 7:
+        "Sure, I can help you."
+
+
+Each step predicts the NEXT TOKEN using the context available
+at that point.
+
+
+──────────────────────────────────────────────────────────────
+
+9. IMPORTANT MENTAL MODEL
+───────────────────────────
+
+The LLM does NOT fundamentally operate like:
+
+    "I know the answer."
+           ↓
+    "Retrieve the answer."
+           ↓
+    "Return it."
+
+
+Its fundamental generation mechanism is:
+
+    "Given everything I currently see,
+     what token should come next?"
+
+
+This happens repeatedly at extremely high speed.
+
+
+──────────────────────────────────────────────────────────────
+
+10. WHY NEXT-TOKEN PREDICTION CAN PRODUCE COMPLEX OUTPUT
+─────────────────────────────────────────────────────────────
+
+Although the basic objective is next-token prediction, the model
+learns extremely complex patterns during training.
+
+It can learn patterns related to:
+
+    • Grammar
+    • Syntax
+    • Semantics
+    • Facts
+    • Code
+    • Reasoning patterns
+    • Dialogue
+    • Writing styles
+    • Relationships between concepts
+
+These capabilities emerge from the huge number of learned
+parameters and the patterns encoded in them.
+
+
+──────────────────────────────────────────────────────────────
+
+11. NEXT-TOKEN PREDICTION IN YOUR AI SDR
+────────────────────────────────────────
+
+Your architecture:
+
+    User
+      ↓
+    Next.js
+      ↓
+    Node / Express
+      ↓
+    ChatService
+      ↓
+    System Prompt
+      +
+    Conversation History
+      +
+    Current User Message
+      ↓
+    Ollama
+      ↓
+    Qwen3:8B
+      ↓
+    Token Generation
+      ↓
+    Streaming Chunks
+      ↓
+    Node Backend
+      ↓
+    Next.js UI
+
+
+Qwen generates the response incrementally.
+
+For example:
+
+    chunk 1 → "Sure"
+    chunk 2 → ","
+    chunk 3 → " I"
+    chunk 4 → " can"
+    chunk 5 → " help"
+    chunk 6 → " you"
+    ...
+
+
+Your frontend can display these chunks as they arrive.
+
+
+──────────────────────────────────────────────────────────────
+
+12. WHY STREAMING WORKS
+───────────────────────
+
+Without streaming:
+
+    User
+      ↓
+    Qwen generates entire response
+      ↓
+    Complete response
+      ↓
+    Backend
+      ↓
+    Frontend
+
+
+The user waits for the entire generation.
+
+With streaming:
+
+    Qwen
+      ↓
+    Token/Chunk
+      ↓
+    Backend
+      ↓
+    Frontend
+      ↓
+    Display immediately
+
+Then:
+
+    Next token/chunk
+      ↓
+    Backend
+      ↓
+    Frontend
+
+And this continues until generation finishes.
+
+
+──────────────────────────────────────────────────────────────
+
+13. THE COMPLETE LLM GENERATION MODEL
+────────────────────────────────────────
+
+                QWEN / LLM
+
+Context
+   │
+   ▼
+Tokenizer
+   │
+   ▼
+Token IDs
+   │
+   ▼
+Transformer
+   │
+   ▼
+Logits
+   │
+   ▼
+Probability Distribution
+   │
+   ▼
+Decoding
+   │
+   ▼
+Next Token
+   │
+   └─────────────────────┐
+                         │
+                         ▼
+                    New Context
+                         │
+                         ▼
+                    Transformer
+                         │
+                         ▼
+                     Next Token
+                         │
+                         ▼
+                        ...
+                         │
+                         ▼
+                  Final Response
+
+
+──────────────────────────────────────────────────────────────
+
+14. KEY DISTINCTIONS
+─────────────────────
+
+TOKEN
+    A piece of text processed by the model.
+
+LOGIT
+    Raw numerical score assigned to a possible next token.
+
+PROBABILITY
+    Normalized likelihood of a possible next token.
+
+DECODING
+    The process used to choose the actual next token.
+
+GENERATION
+    Repeated next-token prediction until the response finishes.
+
+CONTEXT
+    The tokens currently available to the model.
+
+PARAMETERS / WEIGHTS
+    Learned numerical values that determine the model's behavior.
+
+
+──────────────────────────────────────────────────────────────
+
+15. MOST IMPORTANT THING TO REMEMBER
+──────────────────────────────────────
+
+An autoregressive LLM generates text like this:
+
+    Context
+       ↓
+    Transformer
+       ↓
+    Logits
+       ↓
+    Probabilities
+       ↓
+    Decoding
+       ↓
+    ONE NEXT TOKEN
+       ↓
+    Add token to context
+       ↓
+    Repeat
+
+
+The model generates the response ONE TOKEN AT A TIME.
+
+That simple loop is the foundation of modern LLM text generation.
+
+
+──────────────────────────────────────────────────────────────
+
+NEXT CONCEPT
+────────────
+
+The next major question is:
+
+    "How does the Transformer know which previous tokens
+     are important when predicting the next token?"
+
+That leads directly to:
+
+    → ATTENTION
+    → SELF-ATTENTION
+    → QUERY, KEY, VALUE
+    → MULTI-HEAD ATTENTION
+    → CAUSAL ATTENTION
