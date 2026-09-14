@@ -1,0 +1,4 @@
+2. What does “self-attention” mean?
+
+Self-attention means that tokens in the same sequence look at other tokens in that sequence to determine their contextual meaning.
+

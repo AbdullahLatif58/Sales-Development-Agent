@@ -1,0 +1,614 @@
+╔══════════════════════════════════════════════════════════════╗
+║          LLM INFERENCE — DECODING & GENERATION              ║
+║              Temperature • Top-K • Top-P                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+1. THE CORE IDEA
+─────────────────
+
+After the Transformer processes the context, the model produces
+logits for possible next tokens.
+
+The generation pipeline is:
+
+    Context
+       ↓
+    Transformer
+       ↓
+    Logits
+       ↓
+    Probability Distribution
+       ↓
+    Decoding Controls
+       ↓
+    Selected Next Token
+       ↓
+    Repeat
+
+
+Temperature, Top-K, and Top-P influence how the model chooses
+the next token.
+
+IMPORTANT:
+
+    They DO NOT train the model.
+    They DO NOT change the model weights.
+    They DO NOT add knowledge to the model.
+
+They control the GENERATION PROCESS.
+
+
+═══════════════════════════════════════════════════════════════
+2. TEMPERATURE
+═══════════════════════════════════════════════════════════════
+
+Temperature controls how "sharp" or "flat" the probability
+distribution becomes.
+
+Conceptually:
+
+    LOW TEMPERATURE
+        ↓
+    More predictable
+        ↓
+    High-probability tokens dominate
+
+
+    HIGH TEMPERATURE
+        ↓
+    More diverse / random
+        ↓
+    Lower-probability tokens become more likely
+
+
+───────────────────────────────────────────────────────────────
+Example
+───────────────────────────────────────────────────────────────
+
+Suppose the model produces:
+
+    Token A → 70%
+    Token B → 20%
+    Token C → 10%
+
+
+With LOW temperature:
+
+    Token A becomes much more dominant.
+
+    A → ~90%
+    B → ~8%
+    C → ~2%
+
+
+With HIGH temperature:
+
+    Distribution becomes flatter.
+
+    A → ~50%
+    B → ~30%
+    C → ~20%
+
+
+These numbers are only illustrative.
+
+The actual probabilities depend on the logits and temperature.
+
+
+───────────────────────────────────────────────────────────────
+Temperature intuition
+───────────────────────────────────────────────────────────────
+
+    Temperature ↓
+          ↓
+    More deterministic
+          ↓
+    More predictable
+          ↓
+    Less variety
+
+
+    Temperature ↑
+          ↓
+    More randomness
+          ↓
+    More variety
+          ↓
+    More unpredictable
+
+
+Typical conceptual range:
+
+    T < 1
+        More focused
+
+    T = 1
+        Original distribution
+
+    T > 1
+        More diverse
+
+
+IMPORTANT:
+
+Temperature = controls RANDOMNESS / DISTRIBUTION SHARPNESS.
+
+It does NOT make the model "smarter."
+
+
+═══════════════════════════════════════════════════════════════
+3. TOP-K SAMPLING
+═══════════════════════════════════════════════════════════════
+
+Top-K limits the model to the K highest-probability tokens.
+
+Example:
+
+Suppose the model has:
+
+    Token A → 40%
+    Token B → 25%
+    Token C → 15%
+    Token D → 8%
+    Token E → 5%
+    Token F → 3%
+    Token G → 2%
+    ...
+
+If:
+
+    Top-K = 3
+
+Only:
+
+    A
+    B
+    C
+
+remain eligible for sampling.
+
+Everything else is removed from consideration.
+
+
+───────────────────────────────────────────────────────────────
+Top-K mental model
+───────────────────────────────────────────────────────────────
+
+    Full vocabulary
+          ↓
+    Rank tokens by probability
+          ↓
+    Keep top K
+          ↓
+    Sample from those tokens
+          ↓
+    Next token
+
+
+Example:
+
+    Top-K = 1
+
+    → Only the highest-probability token remains.
+
+    This behaves like greedy selection.
+
+
+    Top-K = 5
+
+    → Only the 5 highest-probability tokens remain.
+
+
+    Top-K = 50
+
+    → Only the 50 highest-probability tokens remain.
+
+
+IMPORTANT:
+
+Top-K is based on a FIXED NUMBER of tokens.
+
+    K = 10
+    → always keep 10 candidates
+       (assuming enough candidates exist)
+
+
+═══════════════════════════════════════════════════════════════
+4. TOP-P (NUCLEUS SAMPLING)
+═══════════════════════════════════════════════════════════════
+
+Top-P works differently from Top-K.
+
+Instead of keeping a fixed number of tokens, Top-P keeps the
+SMALLEST SET of highest-probability tokens whose cumulative
+probability reaches P.
+
+
+Example:
+
+    Token A → 50%
+    Token B → 25%
+    Token C → 15%
+    Token D → 5%
+    Token E → 3%
+    Token F → 2%
+
+
+If:
+
+    Top-P = 0.90
+
+Cumulative probabilities:
+
+    A              → 50%
+    A + B          → 75%
+    A + B + C      → 90%
+
+So the candidate set becomes:
+
+    A
+    B
+    C
+
+
+───────────────────────────────────────────────────────────────
+Another example
+───────────────────────────────────────────────────────────────
+
+Suppose:
+
+    A → 80%
+    B → 10%
+    C → 5%
+    D → 3%
+    E → 2%
+
+Top-P = 0.90
+
+Then:
+
+    A → 80%
+    A + B → 90%
+
+Candidates:
+
+    A
+    B
+
+
+If the distribution changes:
+
+    A → 40%
+    B → 30%
+    C → 15%
+    D → 10%
+    E → 5%
+
+Top-P = 0.90
+
+Then:
+
+    A              → 40%
+    A + B          → 70%
+    A + B + C      → 85%
+    A + B + C + D  → 95%
+
+Candidates:
+
+    A
+    B
+    C
+    D
+
+
+So Top-P adapts to the shape of the probability distribution.
+
+
+═══════════════════════════════════════════════════════════════
+5. TOP-K VS TOP-P
+═══════════════════════════════════════════════════════════════
+
+TOP-K:
+
+    "Keep the best K tokens."
+
+    Fixed number of candidates.
+
+Example:
+
+    K = 10
+    → Keep 10 tokens.
+
+
+TOP-P:
+
+    "Keep enough top tokens to cover probability P."
+
+    Variable number of candidates.
+
+Example:
+
+    P = 0.90
+    → Keep enough tokens to reach 90% cumulative probability.
+
+
+Mental model:
+
+    Top-K = fixed COUNT
+
+    Top-P = probability MASS
+
+
+═══════════════════════════════════════════════════════════════
+6. TEMPERATURE + TOP-K + TOP-P
+═══════════════════════════════════════════════════════════════
+
+These controls can work together.
+
+Conceptually:
+
+    Logits
+       ↓
+    Temperature
+       ↓
+    Probability Distribution
+       ↓
+    Top-K / Top-P filtering
+       ↓
+    Sampling
+       ↓
+    Next Token
+
+
+Think of them as different controls:
+
+    Temperature
+        → How sharp/flat is the distribution?
+
+    Top-K
+        → How many candidates are allowed?
+
+    Top-P
+        → How much probability mass is allowed?
+
+
+═══════════════════════════════════════════════════════════════
+7. EXAMPLE — YOUR AI SDR
+═══════════════════════════════════════════════════════════════
+
+User:
+
+    "I need an AI receptionist for my dental clinic."
+
+
+Suppose Qwen considers these possible next tokens:
+
+    "Sure"       → 55%
+    "Absolutely" → 25%
+    "Yes"        → 10%
+    "I"          → 5%
+    "We"         → 3%
+    "However"    → 2%
+
+
+With a low temperature:
+
+    The model strongly prefers:
+
+        "Sure"
+
+
+With higher temperature:
+
+    Other reasonable options become more likely:
+
+        "Absolutely"
+        "Yes"
+        "I"
+
+
+With:
+
+    Top-K = 2
+
+Only:
+
+        "Sure"
+        "Absolutely"
+
+remain candidates.
+
+
+With:
+
+    Top-P = 0.80
+
+Cumulative:
+
+        Sure        → 55%
+        + Absolutely → 80%
+
+So candidates:
+
+        "Sure"
+        "Absolutely"
+
+
+═══════════════════════════════════════════════════════════════
+8. WHEN TO USE WHAT
+═══════════════════════════════════════════════════════════════
+
+LOWER TEMPERATURE
+─────────────────
+
+Good for:
+
+    • Structured outputs
+    • Data extraction
+    • Classification
+    • Deterministic workflows
+    • Tool calling
+    • Business logic
+    • RAG answers where consistency matters
+
+
+HIGHER TEMPERATURE
+──────────────────
+
+Useful for:
+
+    • Creative writing
+    • Brainstorming
+    • Multiple possible ideas
+    • Creative marketing copy
+    • Fiction
+
+
+TOP-K
+─────
+
+Useful when you want to explicitly restrict sampling to the
+highest-ranked K candidates.
+
+
+TOP-P
+─────
+
+Useful when you want the candidate set to adapt dynamically
+to the probability distribution.
+
+
+═══════════════════════════════════════════════════════════════
+9. IMPORTANT PRODUCTION IDEA
+═══════════════════════════════════════════════════════════════
+
+There is NO universal:
+
+    "Best temperature"
+    "Best Top-K"
+    "Best Top-P"
+
+
+The correct settings depend on the task.
+
+For example:
+
+    Structured JSON
+        → lower randomness
+
+    Business classification
+        → lower randomness
+
+    RAG factual response
+        → usually lower/moderate randomness
+
+    Creative copy
+        → higher randomness
+
+    Brainstorming
+        → higher randomness
+
+
+Always evaluate generation settings against the actual task.
+
+
+═══════════════════════════════════════════════════════════════
+10. IMPORTANT MISCONCEPTIONS
+═══════════════════════════════════════════════════════════════
+
+Temperature does NOT:
+
+    ❌ increase model intelligence
+    ❌ add knowledge
+    ❌ change model weights
+    ❌ retrain the model
+
+
+Top-K does NOT:
+
+    ❌ make the model smarter
+    ❌ change its knowledge
+    ❌ retrain the model
+
+
+Top-P does NOT:
+
+    ❌ retrieve information
+    ❌ perform RAG
+    ❌ change model weights
+
+
+All three are:
+
+    INFERENCE / DECODING CONTROLS
+
+
+═══════════════════════════════════════════════════════════════
+11. COMPLETE MENTAL MODEL
+═══════════════════════════════════════════════════════════════
+
+                     CONTEXT
+                        ↓
+                   Transformer
+                        ↓
+                      Logits
+                        ↓
+                  Temperature
+                        ↓
+             Probability Distribution
+                        ↓
+              ┌─────────┴─────────┐
+              ↓                   ↓
+            Top-K               Top-P
+              ↓                   ↓
+              └─────────┬─────────┘
+                        ↓
+                     Sampling
+                        ↓
+                   Next Token
+                        ↓
+                 Add to Context
+                        ↓
+                   Repeat...
+
+
+═══════════════════════════════════════════════════════════════
+12. THE THREE-LINE MEMORY
+═══════════════════════════════════════════════════════════════
+
+TEMPERATURE:
+
+    Controls distribution sharpness / randomness.
+
+
+TOP-K:
+
+    Keep the K highest-probability tokens.
+
+
+TOP-P:
+
+    Keep the smallest set of tokens whose cumulative probability
+    reaches P.
+
+
+═══════════════════════════════════════════════════════════════
+NEXT CONCEPT
+═══════════════════════════════════════════════════════════════
+
+After understanding these decoding controls, the next important
+LLM inference concepts are:
+
+    → Deterministic vs stochastic generation
+    → Seed / reproducibility
+    → Stop sequences
+    → Maximum output tokens
+    → Streaming
+    → Latency
+    → Time-to-first-token (TTFT)
+    → Tokens per second
+    → Inference cost
+
+These are what connect LLM generation to REAL production
+web applications.

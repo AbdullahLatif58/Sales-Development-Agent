@@ -1,0 +1,134 @@
+14. Hallucination
+
+This is one of the most important concepts in GenAI application engineering, because your job isn’t simply to make an LLM generate text.
+
+First: what is a hallucination?
+
+An LLM hallucination is when the model generates information that sounds plausible but is incorrect, unsupported, or fabricated.
+
+
+Example:
+
+User: “What is Vixel Digitals’ enterprise plan?”
+
+Suppose the model doesn’t actually have that information.
+
+It might respond:
+
+“The Enterprise plan costs $2,500/month and includes unlimited AI agents.”
+
+Sounds completely reasonable.
+
+But if that plan doesn’t exist, the model hallucinated.
+
+
+
+
+Parametric knowledge → hallucination
+
+
+
+User:
+"What is the current price of Product X?"
+
+        ↓
+
+LLM
+        ↓
+Parametric knowledge
+        ↓
+Model may have old / incomplete / no information
+        ↓
+Generates plausible answer
+
+
+
+
+1. Missing knowledge
+
+The model simply doesn’t have the required information.
+
+Question
+   ↓
+Required fact
+   ↓
+Not available
+   ↓
+LLM generates plausible continuation
+   ↓
+Hallucination
+
+
+
+2. Outdated knowledge
+
+The model may have learned something during training, but reality changed afterward.
+
+
+
+
+
+Training:
+Product price = $100
+
+Reality:
+Product price = $150
+
+
+
+3. Ambiguous / insufficient context
+
+Suppose your SDR receives:
+
+“Tell him I’ll take the second package.”
+
+But the conversation doesn’t contain the packages.
+
+The model may infer what “second package” means.
+
+That’s dangerous.
+
+
+
+
+
+Hallucination is NOT just “wrong information”
+
+There are several forms.
+
+Factual hallucination
+
+Invented fact:
+
+“Stripe was founded in 2008.”
+
+when the generated claim is incorrect.
+
+Fabricated entity
+
+The model invents something that doesn’t exist:
+
+“Vixel Digitals’ AI Enterprise Suite”
+
+when no such product exists.
+
+Fabricated source
+
+The model produces a citation or document that sounds legitimate but doesn’t actually exist.
+
+Unsupported reasoning
+
+The conclusion might sound logical, but the provided evidence doesn’t actually support it.
+
+⸻
+
+Now the important engineering question:
+
+How do we reduce hallucination?
+
+You don’t solve hallucination with one prompt.
+
+
+The killer rule:
+
+Never assume that because an LLM sounds confident, the information is correct.
