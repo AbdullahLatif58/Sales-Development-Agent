@@ -1,0 +1,35 @@
+nference lifecycle & generation control
+
+We’ll look at what actually happens during a production request:
+
+
+Request
+   ↓
+Context construction
+   ↓
+Prefill
+   ↓
+Prompt processing
+   ↓
+KV Cache
+   ↓
+Token-by-token decoding
+   ↓
+Sampling / decoding strategy
+   ↓
+Streaming
+   ↓
+Completion
+
+
+KV Cache
+
+When an LLM generates a response, it processes the context through its Transformer attention layers.
+
+
+Query (Q)
+Key   (K)
+Value (V)
+
+
+KV cache stores attention’s Key and Value representations from previous tokens so they don’t have to be recomputed during autoregressive decoding.
