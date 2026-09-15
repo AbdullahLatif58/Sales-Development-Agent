@@ -1,0 +1,198 @@
+1. Role / Identity Pattern
+
+Define who the model is and its operating context.
+
+You are Ava, an AI SDR assistant for Vixel Digitals.
+
+
+2. Objective Pattern
+
+Tell the model what outcome it is responsible for.
+
+
+Your objective is to qualify potential leads
+and determine whether Vixel Digitals' services
+are relevant to their business needs.
+
+
+3. Rules / Constraints Pattern
+
+Define the boundaries of behavior.
+
+
+Rules:
+- Ask relevant follow-up questions.
+- Understand the prospect's business problem.
+- Do not immediately push for a meeting.
+- Do not fabricate company information.
+- Do not claim to be another AI system.
+
+
+4. Context Pattern
+
+Don’t mix application data with your static instructions.
+
+
+INSTRUCTIONS
+-------------
+You are Ava...
+Your objective is...
+
+CONTEXT
+-------------
+Customer:
+Company:
+Previous conversation:
+Relevant knowledge:
+
+USER REQUEST
+-------------
+...
+
+This separation is extremely important for your future RAG systems.
+
+You want the model to understand:
+
+These are the rules. This is the data. This is what the user is asking.
+
+
+
+5. Few-Shot / Example Pattern
+
+Sometimes explaining a behavior isn’t enough.
+
+
+Example:
+
+User:
+I need a website for my restaurant.
+
+Assistant:
+I'd be happy to help. What are you hoping
+the website will accomplish for your restaurant?
+
+
+
+6. Delimiter Pattern
+
+When your prompt contains different types of data, explicitly separate them.
+
+<instructions>
+You are Ava...
+</instructions>
+
+<conversation_history>
+...
+</conversation_history>
+
+<retrieved_knowledge>
+...
+</retrieved_knowledge>
+
+<user_message>
+...
+</user_message>
+
+
+7. Conditional / Decision Pattern
+
+Sometimes you want the model to follow a decision process.
+
+If the prospect's requirements are unclear:
+    ask a follow-up question.
+
+If the requirement is understood:
+    identify the relevant service.
+
+If the prospect is qualified and interested:
+    suggest a meeting.
+
+Otherwise:
+    continue the conversation.
+
+
+    8. Output Contract Pattern
+
+Tell the model exactly what the application expects back.
+
+
+Return the response in JSON with:
+
+{
+  "reply": "...",
+  "leadStage": "...",
+  "needsFollowUp": true
+}
+
+
+
+
+9. Grounding Pattern
+
+When you provide external knowledge:
+
+
+Use the provided knowledge to answer the question.
+
+If the answer is not supported by the provided
+knowledge, say that you don't have enough information.
+
+Do not invent facts.
+
+
+10. Modular Prompt Pattern
+
+This is probably the most important pattern for your actual applications.
+
+Prompt
+│
+├── Identity
+├── Objective
+├── Behavior
+├── Business Rules
+├── Constraints
+├── Tool Rules
+├── Security Rules
+├── Context
+└── Output Contract
+
+
+11. Don’t over-prompt
+
+There’s another pattern that experienced engineers learn:
+
+More instructions ≠ better behavior.
+
+A huge prompt can create:
+
+* conflicting rules
+* unnecessary token usage
+* higher latency
+* harder debugging
+* harder evaluation
+* instruction ambiguity
+* more maintenance
+
+
+
+                 PROMPT
+                   │
+        ┌──────────┴──────────┐
+        │                     │
+   INSTRUCTIONS             DATA
+        │                     │
+   ├─ Identity          ├─ User
+   ├─ Objective         ├─ History
+   ├─ Rules             ├─ RAG
+   ├─ Constraints       ├─ Tool results
+   ├─ Tool policy       └─ Runtime state
+   └─ Output contract
+              │
+              ↓
+             LLM
+              │
+              ↓
+        Structured Output
+              │
+              ↓
+        Application Logic
