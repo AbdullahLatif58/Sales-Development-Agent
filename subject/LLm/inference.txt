@@ -33,3 +33,14 @@ Value (V)
 
 
 KV cache stores attention’s Key and Value representations from previous tokens so they don’t have to be recomputed during autoregressive decoding.
+
+
+
+Inference Memory & Quantization
+
+
+This one is important because you’ve actually experienced it with Qwen3:8B + Ollama. You saw the model taking several GB of storage/memory, but there’s a distinction between model file size and runtime memory usage.
+
+What is quantization?
+
+Quantization means representing model parameters using lower numerical precision.

@@ -1,0 +1,23 @@
+ SYSTEM / DEVELOPER INSTRUCTIONS
+│
+├── Identity
+├── Objective
+├── Responsibilities
+├── Behavioral rules
+├── Constraints
+├── Domain rules
+├── Tool rules
+├── Safety rules
+└── Output requirements
+          +
+          ↓
+APPLICATION CONTEXT
+│
+├── User profile
+├── Conversation history
+├── Retrieved knowledge
+├── Tool results
+└── Runtime state
+          +
+          ↓
+USER REQUEST
