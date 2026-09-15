@@ -196,3 +196,22 @@ A huge prompt can create:
               │
               ↓
         Application Logic
+
+
+
+
+
+
+        CONTEXT
+↓
+OBSERVED PROBLEM
+↓
+EVIDENCE
+↓
+TASK
+↓
+CONSTRAINTS
+↓
+EXPECTED RESULT
+↓
+OUTPUT FORMAT
